@@ -46,7 +46,7 @@ An example can be found at the bottom of this file.
 In the Session object, you can interact with your session by making it respond to events.
 The handle_event() method is where all the events are being processed.
 You can use this to write your own methods and modules.
-I already wrote a few examples the Session class below.
+I already wrote a few examples in the Session class below.
 However, it is recommended to code all your functionality into modules.
 
 At the time of writing, the IRC protocol only supports the following events:
