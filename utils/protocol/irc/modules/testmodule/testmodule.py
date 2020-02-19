@@ -9,13 +9,16 @@ Like all other modules, it has a reference to your current `session` so you can 
 
 import threading
 import time
+from utils.logger import logging
+
 
 class IRCModule:
     def __init__(self, session):
         self.session = session
         self.active = 1
 
-        #SomeTimer(self, self.session).start()
+        SomeTimer(self, self.session).start()
+
 
     def run(self, event, recv):
         """
@@ -26,13 +29,13 @@ class IRCModule:
         You can access all objects from your session with self.session
 
         Exampple:
-        self.session.event_user_obj     - User object triggering this event
-        self.session.event_target_obj   - Target object where the event happens
+        self.session.event_user_obj         User object triggering this event
+        self.session.event_target_obj       Target object where the event happens
 
         That's basically all you need. If for some reason you require more data,
         you can do some hocus-pocus with `recv`
-
         """
+
         event, data = event
 
         if event == self.session.protocol.IRCEvent.PRIVMSG:
@@ -68,9 +71,7 @@ class IRCModule:
             self.session.say(f"'{reason}' is not a good reason! :(")
 
     def stop(self):
-        print('stop module')
         self.active = 0
-
 
 
 class SomeTimer(threading.Thread):
@@ -82,6 +83,5 @@ class SomeTimer(threading.Thread):
 
     def run(self):
         while self.module.active:
-            print('This will run forever every 55675 seconds,\nas long as the module is running, or the loop breaks.')
-            time.sleep(5)
-        print('BYE!')
+            print('This will run every 60 seconds, as long as the module is running, or any other condition is true.')
+            time.sleep(60)

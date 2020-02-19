@@ -30,14 +30,16 @@ class IRCEvent(enum.Enum):
     """
     Events for IRC protocol. The numbers have no meaning.
     """
+    ERROR = 0
     PING = 1
     JOIN = 2
     PART = 3
     PRIVMSG = 4
-    KICK = 5
-    MODE = 6
-    NICK = 7
-    QUIT = 8
+    NOTICE = 5
+    KICK = 6
+    MODE = 7
+    NICK = 8
+    QUIT = 9
 
 
 class IRC:
@@ -115,11 +117,14 @@ class IRC:
 
 
     def unload_module(self, module):
-        if hasattr(module, 'stop'):
-            module.stop()
+        """
+        Callable objects are stored in the session.modules dictionary:
+        session.modules[module] where `module` is a module object.
+        """
+        for callable in [callable for callable in self.session.modules[module] if hasattr(callable, 'stop')]:
+            callable.active = 0 # You can never be too sure.
+            callable.stop()
         del self.session.modules[module]
-        logging.debug(f'Module {module} unloaded.')
-        logging.debug(f'Modules after unload: {self.session.modules}')
 
 
     def reload_module(self, module):
@@ -247,8 +252,8 @@ class IRC:
         for line in recv.split('\n'):
             if self.session.events:
                 self.session.handle_event(self.session.events)
-                logging.debug(f'Events for {self.session} flushed.')
                 self.session.events = []
+                logging.debug(f'Events for {self.session} flushed.')
             args = line.split()
             if not args:
                 continue
@@ -260,13 +265,19 @@ class IRC:
                 self.session.protocol.handle_raw(int(args[1]), args[3:])
 
             elif len(args) > 2:
-                # These events most likely require classes.
+                # These events most likely require objects.
                 # Let's fetch the target of the event.
                 event = args[1].upper()
                 self.session.event_user_obj, self.session.event_target_obj =\
                     self.get_event_objects(args, event)
 
                 if not self.session.event_target_obj:  ### NICK AND QUIT DO NOT RETURN ANYTHING HERE
+                    if event == 'ERROR':
+                        self.session.events.append((IRCEvent.ERROR, args[2:]))
+                        # User might not have an object yet.
+                        if self.session.event_user_obj:
+                            self.session.event_user_obj.quit()
+
                     if event == 'QUIT':
                         self.session.events.append((IRCEvent.QUIT, args[2:]))
                         self.session.event_user_obj.quit()
@@ -316,14 +327,21 @@ class IRC:
                     elif event == 'PRIVMSG':
                         """
                         Returns a tuple containing the IRCEvent.PRIVMSG object and text,
-                        where "text" is a list.
+                        where `text` is a list.
                         """
                         self.session.events.append((IRCEvent.PRIVMSG, stripped_data))
+
+                    elif event == 'NOTICE':
+                        """
+                        Returns a tuple containing the IRCEvent.PRIVMSG object and text,
+                        where `text` is a list.
+                        """
+                        self.session.events.append((IRCEvent.NOTICE, stripped_data))
 
                 for m in self.session.modules:
                     for callable in self.session.modules[m]:
                         for event in self.session.events:
-                            print(f'Calling {callable} with {event}')
+                            logging.info(f'Calling {callable} with event: {event}')
                             callable.run(event, args)
 
     def handle_raw(self, num, data):

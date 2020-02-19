@@ -51,8 +51,10 @@ However, it is recommended to code all your functionality into modules.
 
 At the time of writing, the IRC protocol only supports the following events:
 
+irc.IRCEvent.ERROR
 irc.IRCEvent.PING
 irc.IRCEvent.PRIVMSG
+irc.IRCEvent.NOTICE
 irc.IRCEvent.JOIN
 irc.IRCEvent.PART
 irc.IRCEvent.KICK
