@@ -19,7 +19,6 @@ class IRCModule:
 
         SomeTimer(self, self.session).start()
 
-
     def run(self, event, recv):
         """
         :param event:   tuple containting the event object and additional data
@@ -47,18 +46,15 @@ class IRCModule:
                 for user in self.session.event_target_obj.users:
                     self.session.say(user)
 
-
         if event == self.session.protocol.IRCEvent.JOIN:
             if self.session.event_user_obj.nickname != self.session.nickname:
                 self.session.say(f'Welcome to {self.session.event_target_obj}, {self.session.event_user_obj.nickname}!')
-
 
         if event == self.session.protocol.IRCEvent.MODE:
             if str(self.session.event_target_obj)[0] in self.session.protocol.support['CHANTYPES']:
                 # Ensure channel mode.
                 pass
-                #self.session.say(f'You changed the channel mode to: {data}')
-
+                # self.session.say(f'You changed the channel mode to: {data}')
 
         if event == self.session.protocol.IRCEvent.KICK:
             """

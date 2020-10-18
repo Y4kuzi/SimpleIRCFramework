@@ -35,6 +35,10 @@ class AbstractClass(threading.Thread):
                 break  # Kill connection..
 
             for session in read:
+                if session.logging:
+                    logging.enable()
+                else:
+                    logging.disable()
                 try:
                     recv = session.sock.recv(4096).decode('utf-8')
                 except UnicodeDecodeError:

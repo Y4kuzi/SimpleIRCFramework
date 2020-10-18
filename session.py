@@ -28,10 +28,10 @@ Optional:
 new_session.tls = <bool>            Set to a true boolean to use TLS.
 new_session.cert = <string>         Path to your *.pem file.
 new_session.channel = <string       Channel to join upon connect.
-new_session.alt_nick <string>       Alternative nickname, in case the given nickname is already in use.
+new_session.alt_nick = <string>     Alternative nickname, in case the given nickname is already in use.
                                     If it happens with this option disabled, it will append some random
                                     numbers at the end of your nick.
-
+new_session.logging = <bool>        Enables or disabled logging. True by default.
 
 
 We have completed our IRC session instance, we can start it now:
@@ -82,6 +82,7 @@ class Session(AbstractClass, threading.Thread):
         threading.Thread.__init__(self)
         self.active = 0
         self.events = []
+        self.logging = 1
         self.protocol = protocol(self)
         logging.debug(f'Protocol for this session set: {self.protocol}')
 
@@ -131,6 +132,15 @@ class Session(AbstractClass, threading.Thread):
                     if argument[0] == '!bye':
                         self.quit('Byebye!')
 
+                    if argument[0] == '!logging':
+                        if len(argument) > 1 and argument[1].lower() in ['on', 'off']:
+                            if argument[1].lower() == 'on':
+                                logging.disable(False)
+                                self.say('Logging enabled.')
+                            else:
+                                logging.disable()
+                                self.say('Logging disabled.')
+
                     if argument[0] == '!listusers':
                         for u in self.users:
                             self.say(u)
@@ -158,20 +168,17 @@ class Session(AbstractClass, threading.Thread):
         return '<Session>'
 
 
-
 server = "irc.provisionweb.org"
 port = 6697
-
 
 new_session = Session(protocol=irc.IRC)
 
 new_session.nickname = "sif-???"
-#new_session.alt_nick = "alternative_nickname"
+# new_session.alt_nick = "alternative_nickname"
 new_session.server = server
 new_session.port = port
 new_session.tls = 1
-#new_session.cert = "/path/to/cert.pem"
+# new_session.cert = "/path/to/cert.pem"
 new_session.channel = "#bla"
 
 new_session.start()
-
